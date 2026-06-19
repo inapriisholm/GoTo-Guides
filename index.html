@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoTo Guides – find en guide</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#edeae5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GoTo Guides">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* 2026: forhøjede neutraler (varm stone) + én rolig teal-accent */
+    --bg:#edeae5;          /* warm stone */
+    --card:#ffffff;
+    --ink:#2c2a28;         /* dyb varm sort, høj kontrast */
+    --ink-soft:#6a655f;    /* taupe-grå */
+    --line:#e0dcd5;
+    --shadow:rgba(44,42,40,.10);
+
+    /* accent: dæmpet teal (erstatter den gule). navne beholdt for nem mapping */
+    --honey:#2f7e74;       /* primær accent: deep teal */
+    --honey-soft:#d7ebe7;  /* lys teal til fokus/baggrund */
+    --honey-ink:#0f3b35;   /* mørk teal til tekst på accent */
+
+    --orange:#bf6a4a;      /* terracotta (advarsler) */
+    --orange-soft:#f1ddd2;
+    --green:#7f9376;
+    --green-deep:#52715f;
+    --forest:#34534a;
+    --skyblue:#6f9fbf;
+    --deepblue:#3a5872;
+    --mint:#8fb8b0;        /* sekundær (info-knap) */
+    --sand:#d6cfc4;        /* neutral billedbaggrund */
+
+    --radius:18px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'Nunito',system-ui,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:relative;z-index:10;
+    background:var(--bg);
+    padding:16px 16px 4px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;
+    max-width:1100px;margin:0 auto;
+  }
+  .sticky-controls{
+    position:sticky;top:0;z-index:50;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    padding:10px 16px;
+  }
+  .sticky-inner{max-width:1100px;margin:0 auto;}
+  .brand-mark{
+    width:46px;height:46px;border-radius:14px;flex:none;
+    background:var(--honey);
+    display:grid;place-items:center;
+  }
+  .brand-mark svg{width:26px;height:26px;}
+  .brand-text h1{
+    font-family:'Baloo 2',cursive;font-weight:700;
+    font-size:1.4rem;margin:0;line-height:1;color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .brand-text p{margin:3px 0 0;font-size:.82rem;color:var(--ink-soft);font-weight:600;}
+
+  /* ---------- Multi-select typeahead ---------- */
+  .ms-wrap{position:relative;max-width:1100px;margin:0 auto;}
+  .ms-control{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    border:1px solid var(--line);background:#fff;border-radius:14px;
+    padding:8px 8px 8px 14px;min-height:52px;cursor:text;
+    transition:border-color .2s,box-shadow .2s;
+  }
+  .ms-wrap.open .ms-control,
+  .ms-control:focus-within{border-color:var(--honey);box-shadow:0 0 0 3px var(--honey-soft);}
+  .ms-ico{width:21px;height:21px;color:var(--ink-soft);flex:none;}
+  .ms-tags{display:contents;}
+  .ms-tag{
+    display:inline-flex;align-items:center;gap:6px;
+    border-radius:50px;padding:5px 6px 5px 11px;
+    font-size:.86rem;font-weight:800;color:#fff;max-width:100%;
+  }
+  .ms-tag span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ms-tag svg{width:13px;height:13px;flex:none;}
+  .ms-tag .x{
+    display:grid;place-items:center;width:20px;height:20px;flex:none;
+    border:none;border-radius:50%;background:rgba(255,255,255,.28);
+    color:#fff;cursor:pointer;font-size:.9rem;line-height:1;padding:0;
+  }
+  .ms-tag .x:hover{background:rgba(255,255,255,.45);}
+  #msInput{
+    flex:1;min-width:120px;border:none;outline:none;background:transparent;
+    font-family:'Nunito',sans-serif;font-size:1.02rem;font-weight:600;color:var(--ink);
+    padding:6px 0;
+  }
+  #msInput::placeholder{color:#a8a299;font-weight:600;}
+  .ms-chev{
+    border:none;background:transparent;color:var(--ink-soft);cursor:pointer;
+    width:32px;height:32px;display:grid;place-items:center;flex:none;border-radius:8px;
+    transition:transform .2s;
+  }
+  .ms-wrap.open .ms-chev{transform:rotate(180deg);}
+  .ms-chev svg{width:21px;height:21px;}
+
+  .ms-list{
+    position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:70;
+    margin:0;padding:6px;list-style:none;max-height:340px;overflow-y:auto;
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 8px 24px rgba(51,49,46,.16);
+  }
+  .ms-group{
+    font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;
+    color:#a8a299;padding:8px 12px 4px;
+  }
+  .ms-opt{
+    display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;
+    cursor:pointer;
+  }
+  .ms-opt:hover,.ms-opt.active{background:var(--honey-soft);}
+  .ms-opt[aria-selected="true"]{background:#f3efe6;}
+  .ms-opt-ico{
+    display:grid;place-items:center;width:32px;height:32px;border-radius:9px;flex:none;color:#fff;
+  }
+  .ms-opt-ico svg{width:18px;height:18px;}
+  .ms-opt-txt{display:flex;flex-direction:column;line-height:1.2;min-width:0;flex:1;}
+  .ms-opt-txt b{font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ms-opt-txt small{font-size:.8rem;color:#8a857d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ms-opt-check{width:20px;height:20px;flex:none;color:var(--green-deep);opacity:0;}
+  .ms-opt[aria-selected="true"] .ms-opt-check{opacity:1;}
+  .ms-empty{padding:16px 12px;color:#8a857d;font-weight:600;text-align:center;}
+
+  /* ---------- Filter chips (i sticky header) ---------- */
+  .filters{
+    display:flex;gap:9px;overflow-x:auto;padding:11px 0 2px;
+    max-width:1100px;margin:0 auto;
+    scrollbar-width:none;-ms-overflow-style:none;
+  }
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:none;border:1px solid var(--line);background:#fff;
+    border-radius:50px;padding:9px 16px;
+    font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;
+    color:var(--ink-soft);cursor:pointer;white-space:nowrap;
+    transition:all .18s;display:flex;align-items:center;gap:7px;
+  }
+  .chip .dot{width:11px;height:11px;border-radius:50%;flex:none;}
+  .chip[aria-pressed="true"]{
+    color:#fff;border-color:transparent;
+  }
+  .chip[data-region="alle"][aria-pressed="true"]{background:var(--ink);}
+  .chip[data-region="Storkøbenhavn"][aria-pressed="true"]{background:var(--deepblue);}
+  .chip[data-region="Sjælland og øer"][aria-pressed="true"]{background:var(--green-deep);}
+  .chip[data-region="Bornholm"][aria-pressed="true"]{background:var(--orange);}
+  .chip[data-region="Fyn og øer"][aria-pressed="true"]{background:#c08a4a;color:#fff;}
+  .chip[data-region="Jylland"][aria-pressed="true"]{background:var(--skyblue);}
+
+  /* ---------- Count ---------- */
+  .count{
+    max-width:1100px;margin:14px auto 0;padding:0 18px;
+    font-size:.9rem;font-weight:700;color:var(--ink-soft);
+  }
+
+  /* ---------- Grid ---------- */
+  main{max-width:1100px;margin:0 auto;padding:14px 14px 40px;}
+  .grid{
+    display:grid;gap:16px;
+    grid-template-columns:1fr;
+  }
+  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr;}}
+  @media(min-width:860px){.grid{grid-template-columns:1fr 1fr 1fr;}}
+
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    overflow:hidden;border:1px solid var(--line);
+    box-shadow:0 2px 10px var(--shadow);
+    display:flex;flex-direction:column;
+    animation:pop .35s ease both;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .card-img{
+    position:relative;display:block;aspect-ratio:16/10;
+    background:var(--sand);overflow:hidden;cursor:pointer;
+    text-decoration:none;
+  }
+  .card-img .scene{width:100%;height:100%;display:block;transition:transform .25s;}
+  .card-img:hover .scene{transform:scale(1.04);}
+  .card-img:active{filter:brightness(.97);}
+  .card-img:focus-visible{outline:3px solid var(--honey);outline-offset:-3px;}
+  /* Lille "tryk for at åbne"-mærke nederst til højre på fotoet */
+  .open-hint{
+    position:absolute;right:11px;bottom:11px;
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--honey);color:#ffffff;
+    border-radius:50px;padding:6px 12px 6px 11px;
+    font-size:.8rem;font-weight:800;
+    box-shadow:0 2px 6px rgba(0,0,0,.22);
+  }
+  .open-hint svg{width:16px;height:16px;flex:none;}
+  .region-tag{
+    position:absolute;top:11px;left:11px;
+    background:rgba(255,255,255,.95);backdrop-filter:blur(4px);
+    border-radius:50px;padding:5px 12px 5px 9px;
+    font-size:.74rem;font-weight:800;color:var(--ink);
+    display:flex;align-items:center;gap:6px;
+    box-shadow:0 1px 4px rgba(0,0,0,.08);
+  }
+  .region-tag .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+
+  /* Type-mærke: ikon + ord, så stedet kan afkodes med ét blik */
+  .type-tag{
+    position:absolute;left:11px;bottom:11px;
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--tc);color:#fff;
+    border-radius:50px;padding:6px 13px 6px 10px;
+    font-size:.82rem;font-weight:800;letter-spacing:.01em;
+    box-shadow:0 2px 6px rgba(0,0,0,.22);
+  }
+  .type-tag svg{width:18px;height:18px;flex:none;}
+
+  .card-body{padding:14px 15px 16px;display:flex;flex-direction:column;gap:11px;flex:1;}
+  .card-title{
+    font-family:'Baloo 2',cursive;font-weight:700;
+    font-size:1.18rem;line-height:1.15;margin:0;color:var(--ink);
+  }
+  .card-addr{
+    display:flex;align-items:flex-start;gap:6px;
+    font-size:.85rem;color:var(--ink-soft);font-weight:600;margin-top:-4px;
+  }
+  .card-addr svg{width:15px;height:15px;flex:none;margin-top:2px;}
+  .card-note{
+    font-size:.8rem;font-weight:700;color:var(--orange);
+    background:var(--orange-soft);border-radius:9px;padding:7px 10px;
+  }
+  .actions{display:flex;flex-direction:column;gap:9px;margin-top:auto;}
+  .btn{
+    display:flex;align-items:center;gap:10px;
+    text-decoration:none;border-radius:12px;
+    padding:13px 14px;font-family:'Nunito',sans-serif;
+    font-weight:800;font-size:1rem;transition:transform .12s,filter .12s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn svg{width:22px;height:22px;flex:none;}
+  .btn-main{background:var(--honey);color:#ffffff;}
+  .btn-main:hover{filter:brightness(1.03);}
+  .btn-info{background:var(--mint);color:#163b35;}
+  .btn-info:hover{filter:brightness(1.02);}
+  .btn .arrow{margin-left:auto;opacity:.55;}
+
+  /* ---------- Empty ---------- */
+  .empty{
+    grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--ink-soft);
+  }
+  .empty svg{width:64px;height:64px;opacity:.5;margin-bottom:12px;}
+  .empty h3{font-family:'Baloo 2',cursive;margin:0 0 6px;color:var(--ink);font-size:1.3rem;}
+  .empty p{margin:0;font-weight:600;}
+
+  footer{
+    text-align:center;padding:26px 20px 34px;color:var(--ink-soft);
+    font-size:.8rem;font-weight:600;border-top:1px solid var(--line);
+    background:var(--bg);
+  }
+  footer a{color:var(--green-deep);font-weight:800;}
+
+  /* scroll-to-top */
+  #top{
+    position:fixed;right:16px;bottom:16px;z-index:60;
+    width:50px;height:50px;border-radius:50%;border:none;
+    background:var(--ink);color:#fff;cursor:pointer;
+    display:none;place-items:center;box-shadow:0 4px 14px var(--shadow);
+  }
+  #top.show{display:grid;}
+  #top svg{width:24px;height:24px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21s-7-5.2-7-10.5A7 7 0 0 1 12 3.5a7 7 0 0 1 7 7C19 15.8 12 21 12 21z"/>
+        <circle cx="12" cy="10.5" r="2.4"/>
+      </svg>
+    </div>
+    <div class="brand-text">
+      <h1>GoTo Guides</h1>
+      <p>Find en guide til et besøgssted</p>
+    </div>
+  </div>
+</header>
+
+<div class="sticky-controls">
+  <div class="sticky-inner">
+    <div class="ms-wrap" id="msWrap">
+      <div class="ms-control" id="msControl">
+        <svg class="ms-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <div class="ms-tags" id="msTags"></div>
+        <input id="msInput" type="text" inputmode="search" placeholder="Søg eller vælg type…" autocomplete="off" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="msList" aria-label="Søg efter sted eller vælg type">
+        <button class="ms-chev" id="msChev" aria-label="Vis valgmuligheder" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <ul class="ms-list" id="msList" role="listbox" aria-multiselectable="true" hidden></ul>
+    </div>
+
+    <div class="filters" id="filters" role="group" aria-label="Vælg område"></div>
+  </div>
+</div>
+
+<p class="count" id="count"></p>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<button id="top" aria-label="Til toppen">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<footer>
+  Guiderne kommer fra <a href="https://autismgoto.com" target="_blank" rel="noopener">autismgoto.com</a><br>
+  i samarbejde med Autismeforeningen
+</footer>
+
+<script>
+const REGION_COLORS = {
+  "Storkøbenhavn":"#3f5e78",
+  "Sjælland og øer":"#5f7152",
+  "Bornholm":"#c5613a",
+  "Fyn og øer":"#c08a4a",
+  "Jylland":"#7fb0c9"
+};
+
+const PLACES = [
+  // ---- Storkøbenhavn ----
+  {n:"Mindelunden – Ryvangen",a:"Tuborgvej 33, Hellerup",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_6369-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2020/08/Mindelunden-social-præsentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2020/08/Mindelunden-Informationsside.pdf"},
+  {n:"Zoologisk Have",a:"Roskildevej 32, Frederiksberg",r:"Storkøbenhavn",t:"dyr",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_6895-1-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2020/08/ZOO-social-præsentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2020/08/ZOO-Informationsside.pdf"},
+  {n:"Skoletjenesten i Zoologisk Have",a:"Roskildevej 32, Frederiksberg",r:"Storkøbenhavn",t:"dyr",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_7157-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2020/08/Zoologisk-Have-Skoletjenesten-social-præsentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2020/08/Zoologisk-Have-Skoletjenesten-informationsside.pdf"},
+  {n:"Davids Samling",a:"Kronprinsessegade 32, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_7414-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2020/08/Davids-Samling-social-præsentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2020/08/Davids-Samling-Informationsside.pdf"},
+  {n:"Medicinsk Museion",a:"Bredgade 62, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2026/03/Museion-facadefoto-IMG_2232-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/03/Medicinsk-Museion-social-praesentation-januar-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2026/03/Medicinsk-Museion-Informationsside-januar-2026.pdf"},
+  {n:"Statens Museum for Kunst",a:"Sølvgade 48-50, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2026/03/Facadefoto-SMK-2025-IMG_2564-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/03/Social-praesentation-SMK-marts-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2026/03/SMK-Infoside-marts-2026.pdf"},
+  {n:"SMK – Skoletjenesten",a:"Sølvgade 48-50, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_8108-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/03/SMK-undervisning-social-praesentation-marts-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2026/03/SMK-Infoside-marts-2026.pdf"},
+  {n:"Københavns Museum",a:"Stormgade 18, København V",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2020/11/IMG_8600-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/12/Social-praesentation-Koebenhavns-Museum.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/08/Informationsside-Koebenhavns-Museum.pdf"},
+  {n:"Valby Kino",a:"Gammel Jernbanevej 40, Valby",r:"Storkøbenhavn",t:"biograf",img:"https://autismgoto.com/wp-content/uploads/2022/03/IMG_1844-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/03/Valby-Kino-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/03/Valby-Kino-Informationsside.pdf"},
+  {n:"Designmuseum Danmark",a:"Bredgade 68, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/03/Facadefoto-Designmuseum-marts-2025-IMG_4671-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/03/Designmuseum-Danmark-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/03/Informationsside-Designmuseum-Danmark.pdf"},
+  {n:"Designmuseum – Skoletjenesten",a:"Bredgade 68, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_7349-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Designmuseum-Undervisningsforloeb-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Designmuseum-Skoletjenesten.pdf"},
+  {n:"Den Hirschsprungske Samling",a:"Stockholmsgade 20, København Ø",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/06/Foto-af-facade-Den-Hirschsprungske-Samling-IMG_2052-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/06/Den-Hirschsprungske-Samling-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/06/Informationsside-Den-Hirschsprungske-Samling-.pdf"},
+  {n:"Royal Arena",a:"Hannemanns Allé 18-20, København S",r:"Storkøbenhavn",t:"musik",img:"https://autismgoto.com/wp-content/uploads/2023/04/Foto-af-Royal-Arena-IMG_7532-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/04/Royal-Arena-Social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/04/Royal-Arena-Informationsside.pdf"},
+  {n:"Det Kgl. Teater – Gamle Scene",a:"Kongens Nytorv, København K",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2023/08/Kglteater_19-Facade-Camilla-Winter-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/08/Gamle-Scene-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/08/Informationsside-Gamle-Scene.pdf"},
+  {n:"Skuespilhuset",a:"Sankt Annæ Plads 36, København K",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2023/08/Facadefoto-Skuespilhuset-IMG_0868-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/08/Skuespilhuset-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/08/Informationsside-Skuespilhuset.pdf"},
+  {n:"Operaen",a:"Ekvipagemestervej 10, København K",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2023/08/Operaen-facadefoto-IMG_0831-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/08/Operaen-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/08/Informationsside-Operaen.pdf"},
+  {n:"Arbejdermuseet",a:"Rømersgade 22, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/10/Arbejdermuseet-facadefoto-IMG_6069-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/06/Arbejdermuseet-social-praesentation-juni-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/06/Informationsside-Arbejdermuseet-juni-2025.pdf"},
+  {n:"Rosenborg Slot",a:"Øster Voldgade 4A, København K",r:"Storkøbenhavn",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2023/12/Foto-af-Rosenborg-Slot-IMG_6694-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/08/Rosenborg-social-praesentation-november-2024.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/12/Informationsside-Rosenborg.pdf"},
+  {n:"Amalienborgmuseet",a:"Christian VIII’s Palæ, København K",r:"Storkøbenhavn",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2023/12/Amalienborg-foto-IMG_6967-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Amalienborg-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/12/Informationsside-Amalienborgmuseet.pdf"},
+  {n:"Louisiana",a:"Gl. Strandvej 13, Humlebæk",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/12/Foto-Louisiana-IMG_8003-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/12/Louisiana-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/12/Informationsside-Louisiana-.pdf"},
+  {n:"Eremitageslottet – naturrute",a:"Lundtoftevej 301, Kongens Lyngby",r:"Storkøbenhavn",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/01/Foto-Eremitageslottet-IMG_3998-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Vandrerute-til-Eremitageslottet-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/01/Informationsside-vandrerute-til-Eremitageslottet-.pdf"},
+  {n:"Nivaagaards Malerisamling",a:"Gammel Strandvej 2, Nivå",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2024/03/Facadefoto-Nivaagaard-IMG_8105-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/07/Nivaagaards-Malerisamling-social-praesentation-juni-2025-1.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/03/Informationsside-Nivaagaards-Malerisamling.pdf"},
+  {n:"Frilandsmuseet",a:"Kongevejen 100, Kongens Lyngby",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2024/05/Frilandsmuseet-facadefoto-IMG_8977-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/11/Frilandsmuseet-social-praesentation-november-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/11/Informationsside-Frilandsmuseet-november-2025.pdf"},
+  {n:"Folketeatret",a:"Nørregade 39, København K",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2024/06/Facadefoto-Folketeatret-IMG_9371-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/11/Folketeatret-social-praesentation-september-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/06/Informationsside-Folketeatret.pdf"},
+  {n:"Nørrebro Teater",a:"Ravnsborggade 3, København N",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2025/10/Foto-facade-Noerrebro-Teater-oktober-2025.png",p:"https://autismgoto.com/wp-content/uploads/2025/10/Noerrebro-Teater-social-praesentation-oktober-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/10/Informationsside-Noerrebro-Teater.pdf"},
+  {n:"Husets Teater",a:"Halmtorvet 9B, København V",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2024/11/IMG_1042-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/11/Husets-Teater-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/11/Informationsside-Husets-Teater.pdf"},
+  {n:"VEGA",a:"Enghavevej 40, København V",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2024/11/Vega-Facadefoto-IMG_0053-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/11/Vega-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/11/Informationsside-VEGA-1.pdf"},
+  {n:"Betty Nansen Teatret",a:"Frederiksberg Allé 57, Frederiksberg C",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2024/11/IMG_0664-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/11/Betty-Nansen-Teatret-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/11/Informationsside-Betty-Nansen-Teatret.pdf"},
+  {n:"Experimentarium",a:"Tuborg Havnevej 7, Hellerup",r:"Storkøbenhavn",t:"videnskab",img:"https://autismgoto.com/wp-content/uploads/2025/01/Experimentarium-facadefoto-IMG_1497-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/05/Experimentarium-social-praesentation-maj-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/01/Informationsside-Experimentarium.pdf"},
+  {n:"Christiansborg Slot",a:"Prins Jørgens Gård 5, København K",r:"Storkøbenhavn",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2025/04/Facadefoto-Christiansborg-IMG_2656-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/04/Christiansborg-Slot-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/04/Informationsside-Christiansborg-Slot.pdf"},
+  {n:"Østre Gasværk Teater",a:"Morten Grunwalds Plads 1, København Ø",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2025/04/Oestre-Gasvaerk-facadefoto-IMG_4947-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/05/Oestre-Gasvaerk-social-praesentation-16-5-25.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/04/Informationsside-Oestre-Gasvaerk.pdf"},
+  {n:"REPUBLIQUE / REVOLVER",a:"Østerfælled Torv 37 og 34, København Ø",r:"Storkøbenhavn",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2025/04/Republique-Revolver-facadefoto-IMG_4794-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/05/Republique-Revolver-social-praesentation-16-5-25.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/05/Informationsside-Republique-Revolver-16-5-24.pdf"},
+  {n:"Glyptoteket",a:"Dantes Plads 7, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/08/Facadefoto-Glyptoteket-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/09/Glyptoteket-social-praesentation-september-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/08/Informationsside-Glyptoteket-juni-2025.pdf"},
+  {n:"Bakken",a:"Dyrehavsbakken 51, Klampenborg",r:"Storkøbenhavn",t:"forlystelse",img:"https://autismgoto.com/wp-content/uploads/2025/10/Pjerrot-Bakken-forsidefoto-e1759436931816.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/11/Bakken-social-praesentation-november-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/10/Informationsside-Bakken-okober-2025.pdf"},
+  {n:"Biblioteket Frederiksberg",a:"Falkoner Plads 3, Frederiksberg",r:"Storkøbenhavn",t:"bibliotek",img:"https://autismgoto.com/wp-content/uploads/2025/12/Facadefoto-Frederiksberg-Bibliotek-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/12/Biblioteket-Frederiksberg-social-praesentation-november-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/12/Informationsside-Biblioteket-Frederiksberg-november-2025.pdf"},
+  {n:"DR Koncerthuset",a:"Ørestads Boulevard 13, København S",r:"Storkøbenhavn",t:"musik",img:"https://autismgoto.com/wp-content/uploads/2026/03/Facadefoto-DR-Koncerthuset-marts-2026-IMG_3326-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/03/DR-Koncerthuset-social-praesentation-marts-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2026/03/Informationsside-DR-Koncerthuset-marts-2026.pdf"},
+  {n:"Thorvaldsens Museum",a:"Bertel Thorvaldsens Plads 2, København K",r:"Storkøbenhavn",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2026/06/Thorvaldsen-facadefoto-IMG_4443-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/06/Thorvaldsens-Museum-social-praesentation-april-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2026/06/Informationsside-Thorvaldsens-Museum-april-2026.pdf"},
+
+  // ---- Sjælland og øer ----
+  {n:"BonBon-Land",a:"Gartnervej 2, Holmegaard",r:"Sjælland og øer",t:"forlystelse",img:"https://autismgoto.com/wp-content/uploads/2024/07/Facadefoto-BonBon-Land-IMG_1103-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/07/BonBon-Land-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/07/Informationsside-BonBon-Land.pdf"},
+  {n:"Kronborg Slot",a:"Kronborg, Helsingør",r:"Sjælland og øer",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2024/04/Kronborg-Slot-foto-IMG_8961-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/04/Kronborg-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/04/Informationsside-Kronborg.pdf"},
+  {n:"Holbæk Museum",a:"Klosterstræde 18, Holbæk",r:"Sjælland og øer",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/02/Facadefoto-Holbaek-Museum-IMG_3225-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/02/Holbaek-Museum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/02/Informationsside-Holbaek-Museum-.pdf"},
+  {n:"Sagnlandet Lejre",a:"Slangealléen 2, Lejre",r:"Sjælland og øer",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/05/Facadefoto-Sagnlandet-IMG_6196-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/05/Sagnlandet-Lejre-social-praesentation-2-5-25.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/05/Informationsside-Sagnlandet-2-5-25.pdf"},
+  {n:"Slagelse Museum",a:"Bredegade 11a, Slagelse",r:"Sjælland og øer",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/11/Facadefoto-Slagelse-Museum-oktober-2025-IMG_0920-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/03/Slagelse-Museum-social-praesentation-marts-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/11/Informationsside-Slagelse-Museum-oktober-2025.pdf"},
+  {n:"Vandrerute ved Esrum Kloster",a:"Frederiksværksvej, Græsted",r:"Sjælland og øer",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/05/Foto-Vandrerute-Esrum-Kloster-IMG_2962-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/05/Esrum-Kloster-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/05/Informationsside-vandrerute-ved-Esrum-Kloster.pdf"},
+  {n:"Møns Klint",a:"Stengårdsvej 8, Borre",r:"Sjælland og øer",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/01/Foto-Moens-Klint-IMG_5434-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Moens-Klint-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/01/Informationsside-Moens-Klint.pdf"},
+  {n:"Observatoriet i Brorfelde",a:"Observator Gyldenkernes Vej 3, Tølløse",r:"Sjælland og øer",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2022/03/IMG_1339-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/05/Observatoriet-social-praesentation-1.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/03/Informationsside-Observatoriet-i-Brorfelde.pdf"},
+  {n:"Jægerspris Slot",a:"Slotsgården 20, Jægerspris",r:"Sjælland og øer",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_6407-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2020/08/Jægerspris-Slot-social-præsentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2020/08/Jægerspris-Slot-Informationsside.pdf",note:"Lukket pga. renovering frem til foråret 2026"},
+
+  // ---- Bornholm ----
+  {n:"Hammershus",a:"Slotslyngvej 9, Allinge",r:"Bornholm",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2023/09/Forsidefoto-Hammershus-IMG_4732-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/09/Hammershus-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/09/Informationsside-Hammershus.pdf"},
+  {n:"Ekkodalsstien – naturrute",a:"Ekkodalsvejen 5, Aakirkeby",r:"Bornholm",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2023/09/Forsidefoto-Ekkodalsstien-IMG_4511-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/09/Ekkodalsstien-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/09/Informationsside-Ekkodalsstien.pdf"},
+
+  // ---- Fyn og øer ----
+  {n:"Danmarks Jernbanemuseum",a:"Dannebrogsgade 24, Odense C",r:"Fyn og øer",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2024/09/Facadefoto-Danmarks-Jernbanemuseum-IMG_1342-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/10/Danmarks-Jernbanemuseum-social-praesentation-oktober-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/09/Informationsside-Danmarks-Jernbanemuseum.pdf"},
+  {n:"Odense ZOO",a:"Søndre Boulevard 306, Odense C",r:"Fyn og øer",t:"dyr",img:"https://autismgoto.com/wp-content/uploads/2024/09/Facadefoto-Odense-ZOO-IMG_2575-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/09/Odense-ZOO-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/09/Informationsside-Odense-ZOO.pdf"},
+  {n:"Gyldensteen Strand – naturrute",a:"Langø, Bogense",r:"Fyn og øer",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/01/Foto-af-Gyldensteen-Strand-IMG_3418-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Gyldensten-Strand-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/01/Informationsside-Gyldensten-Strand.pdf"},
+  {n:"Langelandsfortet",a:"Vognsbjergvej 4B, Bagenkop",r:"Fyn og øer",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/01/MG_0390-Trabi-gennem-mur-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/04/Langelandsfortet-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/10/Informationsside-Langelandsfortet-.pdf"},
+  {n:"Borgmestergården",a:"Slotsgade 11, Nyborg",r:"Fyn og øer",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2021/10/IMG_0071-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2021/10/Social-praesentation-Borgmestergaarden.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/10/Informationsside-Borgmestergaarden.pdf"},
+
+  // ---- Jylland ----
+  {n:"LEGO House",a:"Ole Kirks Plads 1, Billund",r:"Jylland",t:"forlystelse",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_8154-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/03/LEGO-House-social-praesentation-marts-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/03/LEGO-House-informationsside.pdf"},
+  {n:"Aarhus Teater",a:"Teatergaden, Aarhus C",r:"Jylland",t:"teater",img:"https://autismgoto.com/wp-content/uploads/2020/07/IMG_6852-scaled-1.jpg",p:"https://autismgoto.com/wp-content/uploads/2020/08/Aarhus-Teater-social-præsentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2020/08/Aarhus-Teater-Informationsside.pdf"},
+  {n:"Vejle Kunstmuseum",a:"Flegborg 16-18, Vejle",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2021/06/IMG_9252-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2021/06/Social-praesentation-Vejle-Kunstmuseum.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/07/Informationsside-Vejle-Kunstmuseum.pdf"},
+  {n:"Landskabsskulpturen",a:"Tørskindvej 98 A, Egtved",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2021/06/IMG_9594-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2021/06/Social-praesentation-Landskabsskulpturen.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/06/Informationsside-Landskabsskulpturen.pdf"},
+  {n:"Kulturmuseet i Vejle",a:"Spinderigade 11, Vejle",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2021/07/IMG_9393-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2021/07/Social-praesentation-Kulturmuseet-i-Vejle.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/07/Informationsside-Kulturmuseet-i-Vejle.pdf"},
+  {n:"Vingsted jernalder",a:"Skyttevej 12, Bredsten",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2021/07/IMG_9826-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2021/07/Social-praesentation-Vingsted-Jernalder.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/07/Informationsside-Vingsted-jernalder.pdf"},
+  {n:"Randbøldalmuseet",a:"Dalekildevej 1, Randbøl",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2021/07/IMG_8946-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2021/07/Social-praesentation-Randboeldalmuseet.pdf",i:"https://autismgoto.com/wp-content/uploads/2021/07/Informationsside-Randboeldalmuseet-.pdf"},
+  {n:"Historiecenter Dybbøl Banke",a:"Dybbøl Banke 16, Sønderborg",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/07/Foto-af-Historiecenter-IMG_7453-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/07/Historiecenter-Dybboel-Banke-social-praesentation-maj-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/07/Informationsside-Historiecenter-Dybboel-Banke-maj-2025.pdf"},
+  {n:"Dybbøl Mølle",a:"Dybbøl Banke 7, Sønderborg",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2025/07/Foto-af-Dybboel-Moelle.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/07/Dybboel-Moelle-social-praesentaion-maj-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/07/Informationsside-Dybboel-Moelle-maj-2025.pdf"},
+  {n:"Universe",a:"Mads Patent Vej 1, Nordborg",r:"Jylland",t:"videnskab",img:"https://autismgoto.com/wp-content/uploads/2025/10/IMG_8358-Universe-facadefoto-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/10/Universe-social-praesentation-august-2025.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/10/Informationsside-Universe-august-2025.pdf"},
+  {n:"Fængselsmuseet",a:"Fussingsvej 8, Horsens",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/06/Foto-af-facade-Faengslet-IMG_2946-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/10/Faengselsmuseet-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/10/Informationsside-Faengselsmuseet.pdf"},
+  {n:"Holstebro Museum",a:"Museumsvej 2B, Holstebro",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Facadefoto-af-Holstebro-Museum-IMG_3670-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Holstebro-Museum-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Holstebro-Museum.pdf"},
+  {n:"Frilandsmuseet Hjerl Hede",a:"Hjerlhedevej 14, Vinderup",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Facadefoto-af-Hjerl-Hede-IMG_4305-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Hjerl-Hede-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Hjerl-Hede-.pdf"},
+  {n:"Strandingsmuseum St. George",a:"Vesterhavsgade 1E, Ulfborg",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2022/09/Facadefoto-af-Strandingsmuseet-IMG_4781-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Strandingsmuseum-St.-George-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Strandingsmuseum-St.-George.pdf"},
+  {n:"Thyholm Egnsmuseum",a:"Havrelandsvej 29, Thyholm",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Facadefoto-Thyholm-Egnsmuseum-IMG_5700-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Thyholm-Egnsmuseum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Thyholm-Egnsmuseum.pdf"},
+  {n:"Holstebro Kunstmuseum",a:"Museumsvej 2A, Holstebro",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Facadefoto-af-Holstebro-Museum-IMG_3670-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Holstebro-Kunstmuseum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Holstebro-Kunstmuseum.pdf"},
+  {n:"Lemvig Museum",a:"Vestergade 44, Lemvig",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Foto-af-Lemvig-Museum-IMG_5997-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Lemvig-Museum-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Lemvig-Museum.pdf"},
+  {n:"Jens Søndergaards Museum",a:"Transvej 4, Ferring, Lemvig",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Foto-af-Jens-Soendergaards-Museum-IMG_6348-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Jens-Soendergaards-Museum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Jens-Soendergaards-Museum.pdf"},
+  {n:"Flyvholm Redningsstation",a:"Flyvholmvej 31, Harboøre",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Foto-af-Flyvholm-Redningsstation-IMG_6237-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Flyvholm-Redningsstation-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Foto-af-informationsside-for-Flyvholm-Redningsstation.png"},
+  {n:"Struer Museum",a:"Søndergade 23, Struer",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Foto-af-Struer-Museum-IMG_5085-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Struer-Museum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Struer-Museum.pdf"},
+  {n:"Midt- og Vestjyllands Jernbanemuseum",a:"Godthåbsvej 10, Struer",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/09/Foto-af-Midt-og-Vestjyllands-Jernbanemuseum-IMG_5674-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/09/Midt-og-Vestjyllands-Jernbanemuseum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/09/Informationsside-Midt-og-Vestjyllands-Jernbanemuseum.pdf"},
+  {n:"Museet Sønderskov",a:"Sønderskovgårdvej 2, Brørup",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2022/11/Facadefoto-Museet-Soenderskov-IMG_7290-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/11/Museet-Soenderskov-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/11/Informationsside-Museet-Soenderskov.pdf"},
+  {n:"Ribe Kunstmuseum",a:"Sct. Nicolaj Gade 10, Ribe",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/04/Facadefoto-Ribe-Kunstmuseum-IMG_7762-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/04/Ribe-Kunstmuseum-social-praesentation-.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/05/Informationsside-Ribe-Kunstmuseum.pdf"},
+  {n:"Museet Ribes Vikinger",a:"Odins Plads 1, Ribe",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/07/Facadefoto-Ribes-VikingerIMG_8042-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/07/Museet-Ribes-Vikinger-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/07/Informationsside-Museet-Ribes-Vikinger.pdf"},
+  {n:"Jacob A. Riis Museum",a:"Sortebrødregade 1, Ribe",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/07/Facadefoto-port-Jacob-A.-Riis-Museum-IMG_8504-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/07/Museet-Ribes-Vikinger-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/07/Informationsside-Jacob-A.-Riis-Museum.pdf"},
+  {n:"HEX! – Museum of Witch Hunt",a:"Sortebrødregade 1, Ribe",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/07/HEX-Facadefoto-IMG_8788-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/07/HEX-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/07/Informationsside-HEX.pdf"},
+  {n:"Det Gamle Rådhus i Ribe",a:"Von Støckens Plads, Ribe",r:"Jylland",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2023/07/Facadefoto-Det-Gamle-Raadhus-IMG_9377-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/07/Det-Gamle-Raadhus-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/07/Informationsside-Det-Gamle-Raadhus.pdf"},
+  {n:"Esbjerg Museum",a:"Torvegade 45, Esbjerg",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2023/07/Facadefoto-Esbjerg-Museum-IMG_9579-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/07/Esbjerg-Museum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/07/Informationsside-Esbjerg-Museum-.pdf"},
+  {n:"Koldinghus",a:"Koldinghus 1, Kolding",r:"Jylland",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2023/12/Koldinghus-forside.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Koldinghus-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/12/Informationsside-Koldinghus.pdf"},
+  {n:"Riis Skov – naturrute",a:"Marienlundsvej 2, Risskov",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2023/12/Foto-Riis-Skov-IMG_2271-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/12/Riis-Skov-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/12/Informationsside-Riis-Skov.pdf"},
+  {n:"Husby Klitplantage – naturrute",a:"Græmvej 1, Ulfborg",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2023/12/Foto-Husby-Klitplantage-IMG_3602-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2023/12/Husby-Klitplantage-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2023/12/Informationsside-Husby-Klitplantage.pdf"},
+  {n:"Naturrum Vejlerne",a:"Bygholmvejlevej 640, Fjerritslev",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/01/Foto-Naturrum-Vejlerne-IMG_1994-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Vejlerne-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/01/Informationsside-Vejlerne.pdf"},
+  {n:"Lille Vildmose",a:"Vildmosevej 100, Storvorde",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/01/Foto-Lille-Vildmose-IMG_1455-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Lille-Vildmose-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/01/Informationsside-Lille-Vildmose.pdf"},
+  {n:"Lille Vildmosecentret",a:"Vildmosevej 100, Storvorde",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/01/Foto-af-Lille-Vildmosecentret-IMG_1158-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/01/Lille-Vildmosecentret-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/01/Informationsside-Lille-Vildmosecenteret-.pdf"},
+  {n:"Fjordparkstien",a:"Skydebanevej 12-14, Aalborg",r:"Jylland",t:"natur",img:"https://autismgoto.com/wp-content/uploads/2024/05/Foto-indgang-til-Vestre-Fjordpark-IMG_1582-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/05/Fjordparkstien-Aalborg-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/05/Informationsside-Fjordparkstien.pdf"},
+  {n:"Dueholm Kloster",a:"Dueholmgade 92, Nykøbing Mors",r:"Jylland",t:"slot",img:"https://autismgoto.com/wp-content/uploads/2024/06/IMG_9758-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/06/Dueholm-Kloster-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/06/Informationsside-Dueholm-Kloster.pdf"},
+  {n:"Vendsyssel Kunstmuseum",a:"P. Nørkjærs Plads 15, Hjørring",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2024/07/Facadefoto-Vendsyssel-Kunstmuseum-IMG_0197-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2024/07/Vendsyssel-Kunstmuseum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2024/07/Informationsside-Vendsyssel-Kunstmuseum.pdf"},
+  {n:"Aalborg Zoo",a:"Mølleparkvej 63, Aalborg",r:"Jylland",t:"dyr",img:"https://autismgoto.com/wp-content/uploads/2025/04/Facadefoto-Aalborg-Zoo-28-4-25-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/03/Aalborg-Zoo-social-praesentation-marts-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/03/Informationsside-Aalborg-Zoo.pdf"},
+  {n:"Fårup Sommerland",a:"Pirupvejen 147, Blokhus",r:"Jylland",t:"forlystelse",img:"https://autismgoto.com/wp-content/uploads/2025/06/Facadefoto-Faarup-IMG_6438-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2025/06/Faarup-Sommerland-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/06/Informationsside-Faarup-Sommerland.pdf"},
+  {n:"Center Parcs Nordborg Resort",a:"Resortet 1, Nordborg",r:"Jylland",t:"forlystelse",img:"https://autismgoto.com/wp-content/uploads/2025/07/Center-Parcs-Market-Dome.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/04/Nordborg-Resort-social-praesentation-februar-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2025/07/Informationsside-Nordborg-Resort-juni-2025.pdf"},
+  {n:"Energimuseet",a:"Bjerringbrovej 44, Bjerringbro",r:"Jylland",t:"videnskab",img:"https://autismgoto.com/wp-content/uploads/2026/02/Facadefoto-Energimuseet-IMG_2431-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2026/02/Energimuseet-social-praesentation-februar-2026.pdf",i:"https://autismgoto.com/wp-content/uploads/2026/02/Informationsside-Energimuseet-februar-2026.pdf"},
+  {n:"Lillelund Julemuseum",a:"Sønderskovgårdvej 6, Brørup",r:"Jylland",t:"museum",img:"https://autismgoto.com/wp-content/uploads/2022/11/Foto-af-Lillelund-Julemuseum-IMG_7305-scaled.jpg",p:"https://autismgoto.com/wp-content/uploads/2022/11/Lillelund-Julemuseum-social-praesentation.pdf",i:"https://autismgoto.com/wp-content/uploads/2022/11/Informationsside-Lillelund-Julemuseum.pdf",note:"Begrænsede åbningstider udenfor julesæsonen"}
+];
+
+const REGIONS = ["alle","Storkøbenhavn","Sjælland og øer","Bornholm","Fyn og øer","Jylland"];
+const REGION_LABELS = {"alle":"Alle steder"};
+
+let activeRegion = "alle";
+// Valgte filtre fra multi-select: hver er {kind:"type"|"place", value}
+let selected = [];
+
+// SVG snippets
+const ICON_DOC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg>`;
+const ICON_INFO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>`;
+const ICON_PIN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-10.5A7 7 0 0 1 19 10.5C19 15.8 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.2"/></svg>`;
+const ICON_ARROW = `<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>`;
+const ICON_PLACE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"/></svg>`;
+
+// Type-kategorier: tydeligt ikon + ord, så stedet kan afkodes med ét blik.
+const TYPES = {
+  museum:     {label:"Museum",     color:"#3f5e78", icon:`<path d="M3 21h18M5 21V10l7-4 7 4v11M9 21v-7h6v7"/><path d="M4 10h16"/>`},
+  slot:       {label:"Slot",       color:"#6b5b8a", icon:`<path d="M3 21h18M4 21V9l3 1.5V7l3 1.5V5l4 2v3.5L20 9v12"/>`},
+  natur:      {label:"Natur",      color:"#5f7152", icon:`<path d="M12 3v18M12 21c-4 0-7-2-7-6 2 0 4 .5 5 2M12 13c0-3 2-5 5-5 0 3-2 5-5 5M12 17c-3 0-5-1-5-4 2 0 4 1 5 3"/>`},
+  teater:     {label:"Teater",     color:"#c5613a", icon:`<path d="M4 4h16v6a8 8 0 0 1-16 0z"/><path d="M9 9h.01M15 9h.01M9 13c1 1 5 1 6 0"/>`},
+  forlystelse:{label:"Forlystelse",color:"#d98a2b", icon:`<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>`},
+  dyr:        {label:"Dyr & zoo",  color:"#7a8a3a", icon:`<circle cx="7.5" cy="9" r="1.6"/><circle cx="16.5" cy="9" r="1.6"/><circle cx="5" cy="13.5" r="1.4"/><circle cx="19" cy="13.5" r="1.4"/><path d="M12 13c-2.4 0-4 1.8-4 4 0 1.6 1.6 2 4 2s4-.4 4-2c0-2.2-1.6-4-4-4z"/>`},
+  videnskab:  {label:"Oplevelse",  color:"#2f8a8a", icon:`<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M7.5 15h9"/>`},
+  musik:      {label:"Musik",      color:"#b0476a", icon:`<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>`},
+  biograf:    {label:"Biograf",    color:"#4a4a7a", icon:`<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M7 6l2 4M12 6l2 4M17 6l2 4M3 10h18"/>`},
+  bibliotek:  {label:"Bibliotek",  color:"#8a6d3a", icon:`<path d="M5 4h5v16H5zM10 4h4l2 16-4 .5zM6 8h3M6 12h3"/>`}
+};
+function typeBadge(t){
+  const ty = TYPES[t] || TYPES.museum;
+  return `<span class="type-tag" style="--tc:${ty.color}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ty.icon}</svg>${ty.label}</span>`;
+}
+
+// Tegnede "scene"-billeder pr. type. Blød himmel + tydeligt motiv, intet internet nødvendigt.
+const SCENES = {
+  museum: {sky:"#c4d2dd", sky2:"#dde6ec", g:`
+    <rect x="0" y="120" width="200" height="28" fill="#cfc7b6"/>
+    <rect x="0" y="120" width="200" height="3" fill="#bdb4a0"/>
+    <ellipse cx="100" cy="139" rx="78" ry="7" fill="#0000000f"/>
+    <rect x="38" y="84" width="124" height="44" fill="#ece6da"/>
+    <rect x="38" y="84" width="124" height="44" fill="url(#mg)"/>
+    <defs><linearGradient id="mg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".25"/><stop offset="1" stop-color="#000000" stop-opacity=".10"/></linearGradient></defs>
+    <polygon points="100,44 172,84 28,84" fill="#cbb98f"/>
+    <polygon points="100,44 172,84 100,84" fill="#bda87c"/>
+    <rect x="30" y="80" width="140" height="7" rx="2" fill="#d8caa6"/>
+    <g><rect x="48" y="90" width="13" height="38" fill="#e0d8c8"/><rect x="48" y="90" width="4" height="38" fill="#ffffff66"/>
+       <rect x="72" y="90" width="13" height="38" fill="#e0d8c8"/><rect x="72" y="90" width="4" height="38" fill="#ffffff66"/>
+       <rect x="96" y="90" width="13" height="38" fill="#e0d8c8"/><rect x="96" y="90" width="4" height="38" fill="#ffffff66"/>
+       <rect x="120" y="90" width="13" height="38" fill="#e0d8c8"/><rect x="120" y="90" width="4" height="38" fill="#ffffff66"/>
+       <rect x="144" y="90" width="13" height="38" fill="#e0d8c8"/><rect x="144" y="90" width="4" height="38" fill="#ffffff66"/></g>
+    <rect x="44" y="126" width="118" height="4" fill="#bda87c"/>`},
+
+  slot: {sky:"#c5bfd2", sky2:"#e4e0ea", g:`
+    <rect x="0" y="126" width="200" height="22" fill="#b3aa94"/>
+    <rect x="0" y="126" width="200" height="3" fill="#a39a84"/>
+    <ellipse cx="100" cy="135" rx="72" ry="6" fill="#0000000f"/>
+    <!-- sidetårne -->
+    <g fill="#9d8fb8"><rect x="38" y="54" width="26" height="72"/><rect x="136" y="54" width="26" height="72"/></g>
+    <g fill="#b0a3c6"><rect x="38" y="54" width="11" height="72"/><rect x="136" y="54" width="11" height="72"/></g>
+    <!-- tinder på sidetårne -->
+    <g fill="#9d8fb8"><rect x="38" y="48" width="6" height="8"/><rect x="49" y="48" width="6" height="8"/><rect x="60" y="48" width="4" height="8"/>
+       <rect x="136" y="48" width="6" height="8"/><rect x="147" y="48" width="6" height="8"/><rect x="158" y="48" width="4" height="8"/></g>
+    <!-- midterbygning -->
+    <rect x="64" y="72" width="72" height="54" fill="#a99bc4"/>
+    <rect x="64" y="72" width="36" height="54" fill="#b6a9ce"/>
+    <!-- tinder på midterbygning -->
+    <g fill="#a99bc4"><rect x="64" y="66" width="7" height="8"/><rect x="77" y="66" width="7" height="8"/><rect x="90" y="66" width="7" height="8"/><rect x="103" y="66" width="7" height="8"/><rect x="116" y="66" width="7" height="8"/><rect x="129" y="66" width="7" height="8"/></g>
+    <!-- port -->
+    <path d="M90 126 v-18 a10 10 0 0 1 20 0 v18 z" fill="#564a6e"/>
+    <path d="M90 126 v-18 a10 10 0 0 1 20 0 v18 z" fill="url(#sd)"/>
+    <defs><linearGradient id="sd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs>
+    <line x1="100" y1="98" x2="100" y2="126" stroke="#3f3552" stroke-width="1.5"/>
+    <!-- vinduer -->
+    <g fill="#5f5279"><rect x="46" y="82" width="10" height="15" rx="5"/><rect x="144" y="82" width="10" height="15" rx="5"/>
+       <rect x="78" y="84" width="9" height="14" rx="4.5"/><rect x="113" y="84" width="9" height="14" rx="4.5"/></g>
+    <!-- flag -->
+    <g><line x1="100" y1="54" x2="100" y2="66" stroke="#7a6f52" stroke-width="2"/><path d="M100 55 l12 4 -12 4 z" fill="#b8553f"/>
+       <line x1="48" y1="42" x2="48" y2="50" stroke="#7a6f52" stroke-width="1.6"/><path d="M48 43 l9 3 -9 3 z" fill="#b8553f"/>
+       <line x1="152" y1="42" x2="152" y2="50" stroke="#7a6f52" stroke-width="1.6"/><path d="M152 43 l9 3 -9 3 z" fill="#b8553f"/></g>`},
+
+  natur: {sky:"#b9d4dd", sky2:"#d8e8df", g:`
+    <circle cx="156" cy="40" r="15" fill="#f2e2a6"/><circle cx="156" cy="40" r="15" fill="#ffffff22"/>
+    <path d="M0 122 Q60 110 110 120 T200 116 V148 H0 Z" fill="#7e9468"/>
+    <path d="M0 132 Q70 124 130 132 T200 130 V148 H0 Z" fill="#6c8459"/>
+    <ellipse cx="74" cy="128" rx="30" ry="6" fill="#0000000f"/>
+    <rect x="70" y="96" width="8" height="34" rx="2" fill="#6f5740"/>
+    <circle cx="74" cy="92" r="30" fill="#5d7d4a"/>
+    <circle cx="64" cy="86" r="20" fill="#6f9159"/>
+    <circle cx="86" cy="94" r="18" fill="#789a60"/>
+    <circle cx="74" cy="80" r="15" fill="#86a86b"/>
+    <rect x="128" y="104" width="7" height="30" rx="2" fill="#6f5740"/>
+    <circle cx="131" cy="100" r="22" fill="#5d7d4a"/>
+    <circle cx="124" cy="95" r="14" fill="#739558"/>
+    <circle cx="139" cy="101" r="13" fill="#82a468"/>`},
+
+  teater: {sky:"#2c1a26", sky2:"#150c12", g:`
+    <defs>
+      <radialGradient id="spot" cx="0.5" cy="0.32" r="0.6"><stop offset="0" stop-color="#f2d9a8" stop-opacity=".55"/><stop offset="0.5" stop-color="#caa06a" stop-opacity=".22"/><stop offset="1" stop-color="#caa06a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="curtL" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b34336"/><stop offset="1" stop-color="#6e251d"/></linearGradient>
+      <linearGradient id="curtR" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6e251d"/><stop offset="1" stop-color="#b34336"/></linearGradient>
+      <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e4a34"/><stop offset="1" stop-color="#3f2a1d"/></linearGradient>
+    </defs>
+    <rect x="0" y="0" width="200" height="148" fill="#241622"/>
+    <!-- bagvæg -->
+    <rect x="0" y="0" width="200" height="124" fill="#33202c"/>
+    <!-- spotlys-kegle -->
+    <polygon points="100,12 150,124 50,124" fill="url(#spot)"/>
+    <ellipse cx="100" cy="60" rx="62" ry="46" fill="url(#spot)"/>
+    <!-- scenegulv i perspektiv -->
+    <polygon points="0,124 200,124 200,148 0,148" fill="url(#floorG)"/>
+    <g stroke="#2f1f15" stroke-width="1">
+      <line x1="20" y1="124" x2="-10" y2="148"/><line x1="60" y1="124" x2="48" y2="148"/>
+      <line x1="100" y1="124" x2="100" y2="148"/><line x1="140" y1="124" x2="152" y2="148"/>
+      <line x1="180" y1="124" x2="210" y2="148"/>
+    </g>
+    <line x1="0" y1="124" x2="200" y2="124" stroke="#7a5436" stroke-width="2"/>
+    <!-- topkappe (svalehale-kant) -->
+    <rect x="0" y="10" width="200" height="20" fill="#7a2f28"/>
+    <path d="M0 28 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0 q14 26 14 0" fill="#8f372d"/>
+    <g fill="#c8a24a"><circle cx="14" cy="30" r="2"/><circle cx="42" cy="30" r="2"/><circle cx="70" cy="30" r="2"/><circle cx="98" cy="30" r="2"/><circle cx="126" cy="30" r="2"/><circle cx="154" cy="30" r="2"/><circle cx="182" cy="30" r="2"/></g>
+    <!-- venstre gardin med folder -->
+    <path d="M0 28 q26 8 26 50 q-26 8 -26 46 V28 Z" fill="url(#curtL)"/>
+    <g stroke="#5a1d16" stroke-width="2.5" fill="none" opacity=".7"><path d="M7 32 q8 44 0 88"/><path d="M16 34 q9 42 2 84"/></g>
+    <path d="M24 30 q9 44 2 92 q-6 -46 0 -92 Z" fill="#9c3b30" opacity=".6"/>
+    <!-- højre gardin med folder -->
+    <path d="M200 28 q-26 8 -26 50 q26 8 26 46 V28 Z" fill="url(#curtR)"/>
+    <g stroke="#5a1d16" stroke-width="2.5" fill="none" opacity=".7"><path d="M193 32 q-8 44 0 88"/><path d="M184 34 q-9 42 -2 84"/></g>
+    <!-- PERSON 1: kjole (venstre) -->
+    <g>
+      <ellipse cx="82" cy="123" rx="22" ry="4" fill="#00000033"/>
+      <!-- kjole med svaj og folder -->
+      <path d="M82 78 C76 78 72 84 72 90 L60 122 Q82 116 104 122 L92 90 C92 84 88 78 82 78 Z" fill="#1c0e16"/>
+      <path d="M82 90 L78 122 M82 90 L86 122 M70 110 L66 122 M94 110 L98 122" stroke="#2e1a26" stroke-width="1.5" fill="none"/>
+      <!-- talje + overkrop -->
+      <path d="M76 78 Q82 74 88 78 L86 90 Q82 87 78 90 Z" fill="#241019"/>
+      <!-- arme løftet elegant -->
+      <path d="M78 80 Q64 74 56 62" stroke="#caa07a" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <path d="M86 80 Q100 76 106 66" stroke="#caa07a" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+      <circle cx="55" cy="61" r="2.6" fill="#caa07a"/><circle cx="107" cy="65" r="2.6" fill="#caa07a"/>
+      <!-- hals + hoved -->
+      <rect x="80" y="68" width="4" height="8" fill="#caa07a"/>
+      <circle cx="82" cy="62" r="8.5" fill="#d8b48c"/>
+      <path d="M73 60 Q74 48 82 49 Q90 48 91 60 Q92 54 86 51 Q82 49 78 51 Q73 54 73 60 Z" fill="#3a2418"/>
+    </g>
+    <!-- PERSON 2: jakkesæt (højre) -->
+    <g>
+      <ellipse cx="124" cy="123" rx="18" ry="4" fill="#00000033"/>
+      <!-- ben/bukser -->
+      <path d="M117 104 L115 122 L121 122 L123 106 Z" fill="#15171c"/>
+      <path d="M131 104 L133 122 L127 122 L125 106 Z" fill="#1a1c22"/>
+      <!-- jakke -->
+      <path d="M124 78 L135 84 L133 108 L115 108 L113 84 Z" fill="#20232b"/>
+      <!-- revers -->
+      <path d="M124 80 L118 92 L124 90 L130 92 Z" fill="#2c3039"/>
+      <path d="M124 80 L124 102" stroke="#15171c" stroke-width="1.5"/>
+      <!-- arme -->
+      <path d="M126 82 Q140 84 146 74" stroke="#22252d" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M122 82 Q110 86 108 98" stroke="#22252d" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <circle cx="147" cy="73" r="2.6" fill="#c89e78"/><circle cx="107" cy="99" r="2.6" fill="#c89e78"/>
+      <!-- hals + hoved -->
+      <rect x="122" y="70" width="4" height="9" fill="#c89e78"/>
+      <circle cx="124" cy="64" r="8.5" fill="#cda584"/>
+      <path d="M116 62 Q117 53 124 53 Q131 53 132 62 Q132 56 124 55 Q116 56 116 62 Z" fill="#2a1c12"/>
+    </g>`},
+
+  forlystelse: {sky:"#e9b87e", sky2:"#f6ddb4", g:`
+    <ellipse cx="100" cy="140" rx="64" ry="7" fill="#0000000f"/>
+    <rect x="96" y="96" width="8" height="44" fill="#8a6a3c"/>
+    <rect x="74" y="136" width="52" height="6" rx="3" fill="#7a5d34"/>
+    <circle cx="100" cy="84" r="46" fill="none" stroke="#b9763a" stroke-width="3"/>
+    <circle cx="100" cy="84" r="40" fill="none" stroke="#cf8a45" stroke-width="2" stroke-dasharray="2 4"/>
+    <g stroke="#c47e3e" stroke-width="3"><line x1="100" y1="84" x2="100" y2="38"/><line x1="100" y1="84" x2="146" y2="84"/><line x1="100" y1="84" x2="54" y2="84"/><line x1="100" y1="84" x2="133" y2="117"/><line x1="100" y1="84" x2="67" y2="117"/><line x1="100" y1="84" x2="133" y2="51"/><line x1="100" y1="84" x2="67" y2="51"/></g>
+    <g><circle cx="100" cy="38" r="9" fill="#cf5a44"/><circle cx="146" cy="84" r="9" fill="#e2a93f"/><circle cx="54" cy="84" r="9" fill="#5f8aa8"/><circle cx="133" cy="117" r="9" fill="#6f9a6a"/><circle cx="67" cy="117" r="9" fill="#cf5a44"/><circle cx="133" cy="51" r="9" fill="#5f8aa8"/><circle cx="67" cy="51" r="9" fill="#e2a93f"/></g>
+    <g fill="#ffffff44"><circle cx="100" cy="35" r="3"/><circle cx="143" cy="81" r="3"/><circle cx="51" cy="81" r="3"/></g>
+    <circle cx="100" cy="84" r="7" fill="#9c5236"/>`},
+
+  dyr: {sky:"#f4c98a", sky2:"#f6e2bb", g:`
+    <defs>
+      <radialGradient id="savsun" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#fff3d4"/><stop offset="0.6" stop-color="#ffd98f"/><stop offset="1" stop-color="#ffd98f" stop-opacity="0"/></radialGradient>
+      <linearGradient id="savground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfa45f"/><stop offset="1" stop-color="#a87f3f"/></linearGradient>
+      <linearGradient id="savground2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98a4a"/><stop offset="1" stop-color="#9c7236"/></linearGradient>
+    </defs>
+    <!-- sol -->
+    <circle cx="62" cy="66" r="34" fill="url(#savsun)"/><circle cx="62" cy="66" r="17" fill="#fff0cc"/>
+    <!-- fjerne bakker -->
+    <path d="M0 96 Q50 86 110 92 T200 88 V120 H0 Z" fill="#e3b878" opacity=".7"/>
+    <!-- savannejord i lag -->
+    <path d="M0 108 Q70 100 140 106 T200 104 V148 H0 Z" fill="url(#savground)"/>
+    <path d="M0 126 Q80 120 150 126 T200 124 V148 H0 Z" fill="url(#savground2)"/>
+    <!-- akacietræ (paraply) til venstre -->
+    <path d="M26 124 L29 84 L33 124 Z" fill="#5a4326"/>
+    <path d="M31 86 Q18 82 10 86 M31 84 Q44 80 52 84" stroke="#5a4326" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="31" cy="80" rx="30" ry="9" fill="#5f7140"/>
+    <ellipse cx="31" cy="76" rx="22" ry="7" fill="#6e814c"/>
+    <!-- græstotter -->
+    <g stroke="#8a6a32" stroke-width="1.5" stroke-linecap="round" opacity=".8">
+      <path d="M96 130 l-2 -7 M99 130 l0 -8 M102 130 l2 -7"/>
+      <path d="M180 134 l-2 -7 M183 134 l0 -8 M186 134 l2 -7"/>
+    </g>
+
+    <!-- GIRAF (midt, høj og ikonisk) -->
+    <g>
+      <ellipse cx="116" cy="125" rx="26" ry="4" fill="#0000001a"/>
+      <!-- ben -->
+      <rect x="104" y="98" width="5" height="26" rx="2" fill="#d8a657"/>
+      <rect x="112" y="100" width="5" height="24" rx="2" fill="#ca994c"/>
+      <rect x="120" y="100" width="5" height="24" rx="2" fill="#d8a657"/>
+      <rect x="127" y="98" width="5" height="26" rx="2" fill="#ca994c"/>
+      <!-- krop -->
+      <path d="M101 92 Q118 84 134 92 Q138 100 132 104 Q116 108 104 104 Q98 100 101 92 Z" fill="#dcab5b"/>
+      <!-- hals -->
+      <path d="M128 96 Q136 70 140 50 L147 51 Q145 74 137 100 Z" fill="#dcab5b"/>
+      <!-- øre (bag hovedet) -->
+      <path d="M141 49 Q135 46 133 49 Q135 51 140 52 Z" fill="#caa04c"/>
+      <!-- ossicone-horn med knop -->
+      <line x1="143" y1="48" x2="142" y2="41" stroke="#caa04c" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="147" y1="48" x2="147" y2="41" stroke="#caa04c" stroke-width="1.8" stroke-linecap="round"/>
+      <circle cx="142" cy="40" r="1.8" fill="#7a5a30"/><circle cx="147" cy="40" r="1.8" fill="#7a5a30"/>
+      <!-- hoved (rent profil med snude) -->
+      <path d="M141 47 Q149 45 154 49 Q158 52 154 56 Q150 58 145 56 Q141 53 141 47 Z" fill="#dcab5b"/>
+      <!-- snude-skygge -->
+      <ellipse cx="153" cy="53" rx="3.4" ry="2.4" fill="#caa04c"/>
+      <circle cx="153" cy="52.5" r="0.7" fill="#7a5a30"/>
+      <!-- øje -->
+      <circle cx="147" cy="50" r="1.3" fill="#3f2e1a"/>
+      <!-- pletter -->
+      <g fill="#a9742f" opacity=".85"><path d="M106 90 l5 0 1 5 -5 1 z"/><path d="M116 88 l5 0 1 5 -5 1 z"/><path d="M126 90 l4 0 1 4 -4 1 z"/><path d="M108 98 l4 0 1 4 -4 1 z"/><path d="M120 98 l4 0 1 4 -4 1 z"/>
+        <path d="M131 78 l3 0 1 4 -3 1 z"/><path d="M133 66 l3 0 1 4 -3 1 z"/><path d="M136 56 l2 0 1 3 -2 1 z"/></g>
+      <!-- man -->
+      <path d="M139 50 Q137 72 130 96" stroke="#a9742f" stroke-width="2" fill="none"/>
+    </g>
+
+    <!-- ELEFANT (højre) -->
+    <g transform="translate(8,0)">
+      <ellipse cx="172" cy="128" rx="24" ry="4" fill="#0000001a"/>
+      <!-- ben -->
+      <rect x="160" y="112" width="7" height="16" rx="2.5" fill="#8f8c92"/>
+      <rect x="170" y="113" width="7" height="15" rx="2.5" fill="#9b989e"/>
+      <rect x="180" y="112" width="7" height="16" rx="2.5" fill="#8f8c92"/>
+      <!-- krop -->
+      <ellipse cx="174" cy="106" rx="22" ry="16" fill="#9b989e"/>
+      <ellipse cx="174" cy="106" rx="22" ry="16" fill="url(#eleSh)"/>
+      <defs><radialGradient id="eleSh" cx="0.4" cy="0.32"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity=".14"/></radialGradient></defs>
+      <!-- hoved -->
+      <circle cx="153" cy="100" r="13" fill="#9b989e"/>
+      <!-- øre -->
+      <ellipse cx="158" cy="98" rx="9" ry="11" fill="#8a878d"/>
+      <!-- snabel -->
+      <path d="M147 102 Q140 110 142 120 Q143 126 148 124" stroke="#9b989e" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <!-- stødtand -->
+      <path d="M148 108 Q145 113 147 116" stroke="#efe9dc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="150" cy="98" r="1.6" fill="#3f3a3f"/>
+    </g>
+
+    <!-- ZEBRA (venstre forgrund) -->
+    <g>
+      <ellipse cx="64" cy="130" rx="24" ry="4" fill="#0000001f"/>
+      <!-- ben -->
+      <rect x="50" y="116" width="4.5" height="16" rx="2" fill="#efeef0"/>
+      <rect x="58" y="117" width="4.5" height="15" rx="2" fill="#e2e1e4"/>
+      <rect x="70" y="117" width="4.5" height="15" rx="2" fill="#efeef0"/>
+      <rect x="78" y="116" width="4.5" height="16" rx="2" fill="#e2e1e4"/>
+      <!-- krop -->
+      <ellipse cx="66" cy="110" rx="22" ry="14" fill="#f2f1f3"/>
+      <!-- hals + hoved -->
+      <path d="M82 106 Q92 96 96 86 L101 89 Q98 100 88 110 Z" fill="#f2f1f3"/>
+      <path d="M96 86 Q104 82 106 86 Q108 90 103 92 L97 91 Q95 89 96 86 Z" fill="#f2f1f3"/>
+      <!-- man -->
+      <path d="M83 104 Q90 94 95 86" stroke="#2c2c2c" stroke-width="3" fill="none"/>
+      <!-- ører -->
+      <path d="M97 84 l-1 -5 M101 84 l2 -5" stroke="#2c2c2c" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="104" cy="88" rx="2.4" ry="1.6" fill="#cfcdd0"/>
+      <circle cx="101" cy="87" r="1.3" fill="#2c2c2c"/>
+      <!-- striber -->
+      <g stroke="#2c2c2c" stroke-width="2.2" fill="none">
+        <path d="M54 100 q2 10 0 20 M60 98 q2 12 0 24 M67 97 q1 13 -1 25 M74 98 q-1 12 1 23 M80 101 q-2 10 0 19"/>
+      </g>
+      <g stroke="#2c2c2c" stroke-width="1.8" fill="none"><path d="M85 100 q4 4 6 9 M88 95 q4 3 7 8"/></g>
+    </g>`},
+
+  videnskab: {sky:"#bcdcd9", sky2:"#d8ecea", g:`
+    <ellipse cx="100" cy="140" rx="46" ry="6" fill="#0000000f"/>
+    <rect x="82" y="40" width="36" height="8" rx="4" fill="#3f7a76"/>
+    <path d="M88 48 h24 v22 l20 50 a9 9 0 0 1 -8 13 h-48 a9 9 0 0 1 -8 -13 l20 -50 z" fill="#cfe6e2"/>
+    <path d="M88 48 h24 v22 l20 50 a9 9 0 0 1 -8 13 h-48 a9 9 0 0 1 -8 -13 l20 -50 z" fill="none" stroke="#3f7a76" stroke-width="3"/>
+    <path d="M74 112 h52 l9 20 a7 7 0 0 1 -6 11 h-58 a7 7 0 0 1 -6 -11 z" fill="#5fb0a8"/>
+    <path d="M74 112 h52 l9 20 a7 7 0 0 1 -6 11 h-58 a7 7 0 0 1 -6 -11 z" fill="url(#liq)"/>
+    <defs><linearGradient id="liq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient></defs>
+    <circle cx="86" cy="126" r="5" fill="#ffffff66"/><circle cx="108" cy="132" r="4" fill="#ffffff66"/><circle cx="98" cy="122" r="3" fill="#ffffff66"/>
+    <rect x="96" y="56" width="8" height="3" fill="#3f7a76"/>`},
+
+  musik: {sky:"#d6b9c6", sky2:"#e8d2db", g:`
+    <ellipse cx="100" cy="138" rx="48" ry="6" fill="#0000000f"/>
+    <!-- to nodestilke -->
+    <rect x="80" y="58" width="5" height="60" rx="2.5" fill="#8a3a58"/>
+    <rect x="123" y="48" width="5" height="62" rx="2.5" fill="#8a3a58"/>
+    <!-- bjælke mellem stilkene -->
+    <path d="M80 58 L128 48 L128 56 L80 66 Z" fill="#8a3a58"/>
+    <path d="M80 70 L128 60 L128 66 L80 76 Z" fill="#8a3a58"/>
+    <!-- nodehoveder (ovale, let hældning) -->
+    <ellipse cx="74" cy="116" rx="13" ry="9.5" fill="#9c4366" transform="rotate(-20 74 116)"/>
+    <ellipse cx="70" cy="113" rx="5" ry="3" fill="#ffffff3a" transform="rotate(-20 70 113)"/>
+    <ellipse cx="117" cy="108" rx="13" ry="9.5" fill="#9c4366" transform="rotate(-20 117 108)"/>
+    <ellipse cx="113" cy="105" rx="5" ry="3" fill="#ffffff3a" transform="rotate(-20 113 105)"/>
+    <!-- dekorative prikker -->
+    <circle cx="150" cy="52" r="5" fill="#b86a86"/><circle cx="52" cy="66" r="4" fill="#b86a86"/><circle cx="158" cy="80" r="3" fill="#c98aa0"/>`},
+
+  biograf: {sky:"#bcbad0", sky2:"#d4d2e2", g:`
+    <ellipse cx="100" cy="142" rx="64" ry="6" fill="#0000000f"/>
+    <rect x="36" y="50" width="128" height="84" rx="10" fill="#3f3f63"/>
+    <rect x="36" y="50" width="128" height="84" rx="10" fill="url(#bf)"/>
+    <defs><linearGradient id="bf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></linearGradient></defs>
+    <rect x="46" y="60" width="108" height="52" rx="5" fill="#1c1c2e"/>
+    <rect x="50" y="64" width="100" height="44" rx="3" fill="#e9e7f3"/>
+    <rect x="50" y="64" width="100" height="44" rx="3" fill="url(#scr)"/>
+    <defs><linearGradient id="scr" x1="0" y1="0" x2="0.6" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#c9c6dd" stop-opacity=".2"/></linearGradient></defs>
+    <!-- play-knap: cirkel + ligesidet trekant centreret -->
+    <circle cx="100" cy="86" r="16" fill="#9c4338"/>
+    <circle cx="100" cy="86" r="16" fill="url(#pb)"/>
+    <defs><radialGradient id="pb" cx="0.4" cy="0.35"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></radialGradient></defs>
+    <path d="M95 79 L95 93 L108 86 Z" fill="#fff"/>
+    <g fill="#2c2c47"><circle cx="60" cy="126" r="4"/><circle cx="80" cy="126" r="4"/><circle cx="100" cy="126" r="4"/><circle cx="120" cy="126" r="4"/><circle cx="140" cy="126" r="4"/></g>`},
+
+  bibliotek: {sky:"#ddd2bb", sky2:"#ebe2cf", g:`
+    <ellipse cx="100" cy="144" rx="64" ry="5" fill="#0000000f"/>
+    <rect x="40" y="142" width="120" height="6" fill="#6f5836"/>
+    <g>
+      <rect x="48" y="54" width="22" height="88" rx="2" fill="#7a5f36"/><rect x="48" y="54" width="7" height="88" fill="#8c6e40"/>
+      <rect x="72" y="68" width="20" height="74" rx="2" fill="#9c7a44"/><rect x="72" y="68" width="6" height="74" fill="#b08a4c"/>
+      <rect x="94" y="50" width="22" height="92" rx="2" fill="#a14536"/><rect x="94" y="50" width="7" height="92" fill="#b85542"/>
+      <rect x="118" y="62" width="20" height="80" rx="2" fill="#4f6a4a"/><rect x="118" y="62" width="6" height="80" fill="#5f7c58"/>
+      <rect x="140" y="56" width="20" height="86" rx="2" fill="#3a5670"/><rect x="140" y="56" width="6" height="86" fill="#496684"/>
+    </g>
+    <g fill="#ffffff22"><rect x="48" y="60" width="22" height="2"/><rect x="94" y="58" width="22" height="2"/><rect x="140" y="62" width="20" height="2"/></g>`}
+};
+function sceneSVG(t){
+  const s = SCENES[t] || SCENES.museum;
+  const sky = s.sky2
+    ? `<defs><linearGradient id="sky_${t}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sky}"/><stop offset="1" stop-color="${s.sky2}"/></linearGradient></defs><rect width="200" height="148" fill="url(#sky_${t})"/>`
+    : `<rect width="200" height="148" fill="${s.sky}"/>`;
+  return `<svg class="scene" viewBox="0 0 200 148" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    ${sky}${s.g}</svg>`;
+}
+
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+// Build filter chips
+const filtersEl = document.getElementById('filters');
+REGIONS.forEach(r=>{
+  const b=document.createElement('button');
+  b.className='chip';b.dataset.region=r;
+  b.setAttribute('aria-pressed', r==="alle"?"true":"false");
+  const label = REGION_LABELS[r]||r;
+  const dot = r==="alle" ? "" : `<span class="dot" style="background:${REGION_COLORS[r]}"></span>`;
+  b.innerHTML = dot + esc(label);
+  b.addEventListener('click',()=>{
+    activeRegion=r;
+    [...filtersEl.children].forEach(c=>c.setAttribute('aria-pressed', c.dataset.region===r?"true":"false"));
+    render();
+  });
+  filtersEl.appendChild(b);
+});
+
+const grid=document.getElementById('grid');
+const countEl=document.getElementById('count');
+
+function cardHTML(pl){
+  const color=REGION_COLORS[pl.r]||"#999";
+  const note = pl.note ? `<div class="card-note">⚠️ ${esc(pl.note)}</div>` : "";
+  return `<article class="card">
+    <a class="card-img" href="${pl.p}" rel="noopener" aria-label="Åbn guide til ${esc(pl.n)}">
+      ${sceneSVG(pl.t)}
+      <span class="region-tag"><span class="dot" style="background:${color}"></span>${esc(pl.r)}</span>
+      ${typeBadge(pl.t)}
+    </a>
+    <div class="card-body">
+      <h2 class="card-title">${esc(pl.n)}</h2>
+      <p class="card-addr">${ICON_PIN}<span>${esc(pl.a)}</span></p>
+      ${note}
+      <div class="actions">
+        <a class="btn btn-main" href="${pl.p}" rel="noopener">${ICON_DOC}<span>Åbn guide</span>${ICON_ARROW}</a>
+        <a class="btn btn-info" href="${pl.i}" rel="noopener">${ICON_INFO}<span>Praktisk info</span>${ICON_ARROW}</a>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  const selTypes  = selected.filter(s=>s.kind==="type").map(s=>s.value);
+  const selPlaces = selected.filter(s=>s.kind==="place").map(s=>s.value);
+  const list=PLACES.filter(pl=>{
+    const okR = activeRegion==="alle" || pl.r===activeRegion;
+    const okType  = selTypes.length===0  || selTypes.includes(pl.t);
+    const okPlace = selPlaces.length===0 || selPlaces.includes(pl.n);
+    return okR && okType && okPlace;
+  });
+  countEl.textContent = list.length===1 ? "1 sted" : `${list.length} steder`;
+  if(list.length===0){
+    grid.innerHTML=`<div class="empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <h3>Ingen steder fundet</h3>
+      <p>Prøv et andet valg eller vælg “Alle steder”.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=list.map(cardHTML).join('');
+}
+
+/* ====== Multi-select typeahead ====== */
+const msWrap   = document.getElementById('msWrap');
+const msControl= document.getElementById('msControl');
+const msTags   = document.getElementById('msTags');
+const msInput  = document.getElementById('msInput');
+const msChev   = document.getElementById('msChev');
+const msList   = document.getElementById('msList');
+
+// Byg alle valgmuligheder: typer (med antal) + alle steder
+const MS_OPTIONS = (function(){
+  const counts={};
+  PLACES.forEach(pl=>{counts[pl.t]=(counts[pl.t]||0)+1;});
+  const out=[];
+  Object.keys(TYPES).forEach(k=>{
+    if(!counts[k]) return;
+    out.push({kind:"type", value:k, label:TYPES[k].label, sub:"Vis alle · "+counts[k]+" steder"});
+  });
+  PLACES.forEach(pl=>{
+    out.push({kind:"place", value:pl.n, label:pl.n, sub:pl.a});
+  });
+  return out;
+})();
+
+let msOpen=false, msActiveIdx=-1, msFiltered=[];
+
+function isSelected(o){ return selected.some(s=>s.kind===o.kind && s.value===o.value); }
+function norm(s){ return s.toLowerCase()
+  .replace(/æ/g,'ae').replace(/ø/g,'oe').replace(/å/g,'aa'); }
+
+function svgStr(d,sw){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw||2}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;}
+const CHECK = '<path d="M5 13l4 4L19 7"/>';
+
+function renderTags(){
+  msTags.innerHTML = selected.map((s,i)=>{
+    if(s.kind==="type"){
+      const ty=TYPES[s.value];
+      return `<span class="ms-tag" style="background:${ty.color}">${svgStr(ty.icon,2)}<span>${ty.label}</span><button class="x" data-i="${i}" aria-label="Fjern ${ty.label}">✕</button></span>`;
+    }
+    return `<span class="ms-tag" style="background:#6f6a64"><span>${esc(s.value)}</span><button class="x" data-i="${i}" aria-label="Fjern ${esc(s.value)}">✕</button></span>`;
+  }).join('');
+  // placeholder skjules når der er valgte
+  msInput.placeholder = selected.length ? "" : "Søg eller vælg type…";
+}
+
+function renderList(){
+  const q = norm(msInput.value.trim());
+  msFiltered = MS_OPTIONS.filter(o=>{
+    if(!q) return true;
+    return norm(o.label).includes(q) || (o.kind==="place" && norm(o.sub).includes(q));
+  });
+  if(msFiltered.length===0){
+    msList.innerHTML = `<li class="ms-empty">Ingen forslag</li>`;
+    return;
+  }
+  let html="", lastGroup="";
+  msFiltered.forEach((o,idx)=>{
+    const group = o.kind==="type" ? "Typer" : "Steder";
+    if(group!==lastGroup){ html+=`<li class="ms-group" role="presentation">${group}</li>`; lastGroup=group; }
+    const sel = isSelected(o);
+    const ico = o.kind==="type"
+      ? `<span class="ms-opt-ico" style="background:${TYPES[o.value].color}">${svgStr(TYPES[o.value].icon,2)}</span>`
+      : `<span class="ms-opt-ico" style="background:#cfc6b8;color:#5a4f3f">${svgStr(ICON_PIN_D,2)}</span>`;
+    html+=`<li class="ms-opt ${idx===msActiveIdx?'active':''}" role="option" aria-selected="${sel}" data-idx="${idx}">
+      ${ico}
+      <span class="ms-opt-txt"><b>${esc(o.label)}</b><small>${esc(o.sub)}</small></span>
+      <svg class="ms-opt-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${CHECK}</svg>
+    </li>`;
+  });
+  msList.innerHTML = html;
+}
+const ICON_PIN_D = '<path d="M12 21s-7-5.2-7-10.5A7 7 0 0 1 19 10.5C19 15.8 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.2"/>'; // pin-path til steder
+
+function openList(){ msOpen=true; msWrap.classList.add('open'); msInput.setAttribute('aria-expanded','true'); msList.hidden=false; msActiveIdx=-1; renderList(); }
+function closeList(){ msOpen=false; msWrap.classList.remove('open'); msInput.setAttribute('aria-expanded','false'); msList.hidden=true; }
+
+function toggleOption(o){
+  if(isSelected(o)) selected = selected.filter(s=>!(s.kind===o.kind && s.value===o.value));
+  else selected.push({kind:o.kind, value:o.value});
+  msInput.value="";
+  renderTags(); renderList(); render();
+  msInput.focus();
+}
+
+// Events
+msControl.addEventListener('click', e=>{
+  if(e.target.closest('.ms-tag')) return; // klik på chip håndteres separat
+  msInput.focus(); if(!msOpen) openList();
+});
+msChev.addEventListener('click', e=>{ e.stopPropagation(); msOpen?closeList():(msInput.focus(),openList()); });
+msInput.addEventListener('focus', ()=>{ if(!msOpen) openList(); });
+msInput.addEventListener('input', ()=>{ if(!msOpen) openList(); msActiveIdx=-1; renderList(); });
+
+msTags.addEventListener('click', e=>{
+  const btn=e.target.closest('.x'); if(!btn) return;
+  e.stopPropagation();
+  selected.splice(+btn.dataset.i,1);
+  renderTags(); renderList(); render(); msInput.focus();
+});
+
+msList.addEventListener('mousedown', e=>{
+  const li=e.target.closest('.ms-opt'); if(!li) return;
+  e.preventDefault();
+  toggleOption(msFiltered[+li.dataset.idx]);
+});
+
+msInput.addEventListener('keydown', e=>{
+  if(e.key==="ArrowDown"){ e.preventDefault(); if(!msOpen)openList(); msActiveIdx=Math.min(msActiveIdx+1,msFiltered.length-1); renderList(); scrollActive(); }
+  else if(e.key==="ArrowUp"){ e.preventDefault(); msActiveIdx=Math.max(msActiveIdx-1,0); renderList(); scrollActive(); }
+  else if(e.key==="Enter"){ e.preventDefault(); if(msActiveIdx>=0&&msFiltered[msActiveIdx]) toggleOption(msFiltered[msActiveIdx]); }
+  else if(e.key==="Escape"){ closeList(); }
+  else if(e.key==="Backspace" && msInput.value==="" && selected.length){ selected.pop(); renderTags(); renderList(); render(); }
+});
+function scrollActive(){
+  const el=msList.querySelector('.ms-opt.active'); if(el) el.scrollIntoView({block:"nearest"});
+}
+
+document.addEventListener('click', e=>{ if(!msWrap.contains(e.target)) closeList(); });
+
+renderTags();
+
+
+// scroll-to-top
+const topBtn=document.getElementById('top');
+window.addEventListener('scroll',()=>{
+  topBtn.classList.toggle('show', window.scrollY>500);
+},{passive:true});
+topBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+
+render();
+
+// Registrer service worker (virker kun når appen ligger online, ikke fra en løs fil)
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+</script>
+</body>
+</html>
