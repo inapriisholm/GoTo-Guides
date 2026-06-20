@@ -2,7 +2,11 @@
 // Cacher selve appen (skal-app) så den kan åbnes uden internet.
 // PDF-guider og fotos hentes fra autismgoto.com og kræver internet.
 
-const CACHE = 'autismgoto-v1';
+// VIGTIGT: Hæv dette versionsnummer (v1 -> v2 -> v3 osv.) hver gang du laver
+// en større opdatering, hvis du vil tvinge alle brugere til at hente helt
+// frisk indhold med det samme. Normalt er det ikke nødvendigt længere,
+// fordi appen nu altid prøver netværket først.
+const CACHE = 'autismgoto-v2';
 const CORE = [
   './',
   './index.html',
@@ -29,14 +33,16 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // App-filer (samme oprindelse): brug cache først, ellers netværk.
+  // App-filer (samme oprindelse): netværk først, så brugere altid får
+  // nyeste version når de har internet. Falder tilbage til cache,
+  // hvis de er offline.
   if (url.origin === location.origin) {
     e.respondWith(
-      caches.match(req).then((hit) => hit || fetch(req).then((res) => {
+      fetch(req).then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
         return res;
-      }).catch(() => caches.match('./index.html')))
+      }).catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
     );
     return;
   }
